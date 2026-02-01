@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Question for You...</title>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- General Setup & Theming --- */
+        :root {
+            --primary-pink: #ffb3d9;
+            --dark-pink: #ff66b3;
+            --soft-purple: #e6ccff;
+            --dark-purple: #b366ff;
+            --creamy-white: #fffaf0;
+            --text-dark: #553c55;
+            --shadow-color: rgba(179, 102, 255, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Comfortaa', cursive;
+            background: linear-gradient(135deg, #2a1a3e, #3d2f5b);
+            color: var(--creamy-white);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" style="font-size: 24px;"><text y="28">👻</text></svg>'), auto;
+        }
+
+        /* --- Scene Container --- */
+        .scene {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+            pointer-events: none;
+        }
+
+        .scene.active {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+        
+        /* --- Suspense Particles --- */
+        .particle {
+            position: absolute;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float-particle 15s infinite linear;
+        }
+        @keyframes float-particle {
+            from {
+                transform: translateY(100vh) translateX(0) scale(0);
+                opacity: 0;
+            }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            to {
+                transform: translateY(-100vh) translateX(100px) scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        /* --- Ghost Character --- */
+        .ghost {
+            width: 120px;
+            height: 120px;
+            background: var(--creamy-white);
+            border-radius: 50% 50% 0 0;
+            position: relative;
+            box-shadow: 0 10px 30px var(--shadow-color);
+            animation: float 3s ease-in-out infinite;
+            margin-bottom: 30px;
+        }
+
+        .ghost::before, .ghost::after {
+            content: '';
+            position: absolute;
+            background: var(--text-dark);
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            top: 40px;
+        }
+        .ghost::before { left: 30px; }
+        .ghost::after { right: 30px; }
+
+        .ghost-blush {
+            position: absolute;
+            width: 20px;
+            height: 10px;
+            background: var(--primary-pink);
+            border-radius: 50%;
+            top: 60px;
+            opacity: 0.7;
+        }
+        .ghost-blush.left { left: 20px; }
+        .ghost-blush.right { right: 20px; }
+
+        .ghost-mouth {
+            position: absolute;
+            bottom: 35px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 15px;
+            border-radius: 0 0 15px 15px;
+            background: var(--text-dark);
+        }
+        
+        .ghost.happy .ghost-mouth {
+            border-radius: 15px 15px 0 0;
+            bottom: 30px;
+        }
+
+        .ghost.sad .ghost-mouth {
+            border-radius: 15px 15px 0 0;
+            bottom: 25px;
+            width: 15px;
+            height: 8px;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+
+        @keyframes wiggle {
+            0%, 100% { transform: translateX(0) rotate(0deg); }
+            25% { transform: translateX(-5px) rotate(-5deg); }
+            75% { transform: translateX(5px) rotate(5deg); }
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+        
+        /* --- YES Scene Specifics --- */
+        #yes-scene {
+            background: linear-gradient(135deg, #ff9a9e, #fecfef, #fad0c4);
+            color: #3d283d; /* Much darker font color */
+        }
+
+        #yes-scene h1 {
+            animation: bounce-in 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+
+        /* Make the ghost's eyes hearts in the YES scene */
+        #yes-scene .ghost::before,
+        #yes-scene .ghost::after {
+            content: '♥';
+            background: none;
+            color: #ff4d94;
+            width: auto;
+            height: auto;
+            font-size: 24px;
+            top: 35px;
+            line-height: 1;
+        }
+        #yes-scene .ghost::before { left: 28px; }
+        #yes-scene .ghost::after { right: 28px; }
+
+        @keyframes bounce-in {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .floating-element {
+            position: absolute;
+            bottom: -50px;
+            font-size: 2rem;
+            animation: float-up 4s linear forwards;
+            pointer-events: none;
+        }
+
+        @keyframes float-up {
+            to {
+                bottom: 110vh;
+                transform: translateX(100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* --- Hover Heart Animation --- */
+        .hover-heart {
+            position: absolute;
+            pointer-events: none;
+            animation: heart-fade 1s ease-out forwards;
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 0 0 10px rgba(255, 105, 180, 0.7);
+        }
+
+        @keyframes heart-fade {
+            0% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -150%) scale(0.5);
+            }
+        }
+
+
+        /* --- UI Elements --- */
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--creamy-white);
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            color: #0f0223;
+        }
+
+        .btn {
+            background: var(--creamy-white);
+            color: var(--dark-purple);
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-family: 'Comfortaa', cursive;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px var(--shadow-color);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, font-size 0.3s ease, padding 0.3s ease;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px var(--shadow-color);
+        }
+
+        .btn-yes {
+            background: linear-gradient(45deg, var(--dark-pink), var(--dark-purple));
+            color: var(--creamy-white);
+            font-size: 1.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 102, 179, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(255, 102, 179, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 102, 179, 0); }
+        }
+
+        .btn-no {
+            background: #f0f0f0;
+            color: #999;
+            font-size: 1rem;
+            margin-left: 20px;
+        }
+        
+        /* --- Game Scene Specifics --- */
+        #game-scene .ghost {
+            position: absolute;
+            pointer-events: none;
+        }
+
+        .vibe-orb {
+            width: 25px;
+            height: 25px;
+            background: radial-gradient(circle, #fff, var(--primary-pink));
+            border-radius: 50%;
+            position: absolute;
+            pointer-events: none;
+            animation: float-orb 4s linear infinite;
+            box-shadow: 0 0 10px var(--primary-pink);
+        }
+
+        @keyframes float-orb {
+            from { transform: translateY(100vh) rotate(0deg); }
+            to { transform: translateY(-100px) rotate(360deg); }
+        }
+
+        .courage-meter {
+            width: 300px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-top: 20px;
+            border: 2px solid var(--creamy-white);
+        }
+
+        .courage-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--dark-pink), var(--dark-purple));
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 15px;
+        }
+
+        /* --- Results Panel --- */
+        #results-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(40, 40, 60, 0.9);
+            color: var(--creamy-white);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid var(--soft-purple);
+            box-shadow: 0 0 20px var(--shadow-color);
+            display: none; /* Hidden by default */
+            z-index: 1000;
+            font-family: 'Courier New', Courier, monospace;
+            backdrop-filter: blur(5px);
+        }
+
+        #results-panel h3 {
+            font-family: 'Comfortaa', cursive;
+            margin-bottom: 10px;
+            color: var(--primary-pink);
+        }
+
+        #results-panel p {
+            margin: 5px 0;
+            font-size: 0.9rem;
+        }
+
+        #results-panel button {
+            margin-top: 15px;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            background: var(--dark-purple);
+            color: var(--creamy-white);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #results-panel button:hover {
+            background: var(--dark-pink);
+        }
+
+
+        /* --- Confetti Canvas --- */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Scene 1: The Introduction -->
+    <section id="intro-scene" class="scene active">
+        <div class="particle-container"></div>
+        <div class="ghost">
+            <div class="ghost-blush left"></div>
+            <div class="ghost-blush right"></div>
+            <div class="ghost-mouth"></div>
+        </div>
+        <h1>Unnati,I've been waiting for this moment...</h1>
+        <p>There's something I've been meaning to ask.</p>
+        <button class="btn" onclick="startGame()">Reveal the Secret...</button>
+    </section>
+
+    <!-- Scene 2: The Game -->
+    <section id="game-scene" class="scene">
+        <div class="ghost" id="game-ghost">
+            <div class="ghost-blush left"></div>
+            <div class="ghost-blush right"></div>
+            <div class="ghost-mouth"></div>
+        </div>
+        <h1>Help me gather courage!</h1>
+        <p>Move your mouse to catch the good vibes!</p>
+        <div class="courage-meter">
+            <div class="courage-fill" id="courage-fill"></div>
+        </div>
+    </section>
+
+    <!-- Scene 3: The Question -->
+    <section id="question-scene" class="scene">
+        <div class="ghost happy">
+            <div class="ghost-blush left"></div>
+            <div class="ghost-blush right"></div>
+            <div class="ghost-mouth"></div>
+        </div>
+        <h1>Will you be my Valentine?</h1>
+        <div>
+            <button class="btn btn-yes" id="yes-btn" onclick="sayYes()">YES!</button>
+            <button class="btn btn-no" id="no-btn" onclick="sayNo()">Let me think...</button>
+        </div>
+    </section>
+
+    <!-- Scene 4: The "Yes" Response -->
+    <section id="yes-scene" class="scene">
+        <div class="ghost happy" style="animation: wiggle 1s ease-in-out infinite;">
+             <div class="ghost-blush left"></div>
+            <div class="ghost-blush right"></div>
+            <div class="ghost-mouth"></div>
+        </div>
+        <h1>YAYYY! 🎉</h1>
+        <p>You made me the happiest ghost!</p>
+        <p> hope we meet soon😘</p>
+        <div id="floating-elements-container"></div>
+    </section>
+
+    <!-- Scene 5: The "No" Response -->
+    <section id="no-scene" class="scene">
+        <div class="ghost sad">
+            <div class="ghost-blush left"></div>
+            <div class="ghost-blush right"></div>
+            <div class="ghost-mouth"></div>
+        </div>
+        <h1>Oh... okay.</h1>
+        <p>I'll just be... over here.</p>
+        <button class="btn" onclick="reconsider()">Are you sure? 🥺</button>
+    </section>
+
+    <!-- Results Panel -->
+    <div id="results-panel">
+        <h3>Developer Panel</h3>
+        <p id="result-answer">Answer: Not yet recorded</p>
+        <p id="result-time">Time: --</p>
+        <button onclick="resetData()">Reset Data</button>
+    </div>
+
+    <!-- Confetti Canvas -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script>
+        // --- Scene Management ---
+        const scenes = document.querySelectorAll('.scene');
+
+        function showScene(sceneId) {
+            scenes.forEach(scene => scene.classList.remove('active'));
+            document.getElementById(sceneId).classList.add('active');
+        }
+
+        // --- Results Panel Logic ---
+        const resultsPanel = document.getElementById('results-panel');
+        const resultAnswerEl = document.getElementById('result-answer');
+        const resultTimeEl = document.getElementById('result-time');
+
+        function updateResultsPanel() {
+            const answer = localStorage.getItem('valentineAnswer');
+            const time = localStorage.getItem('valentineAnswerTimestamp');
+            
+            if (answer) {
+                resultAnswerEl.innerText = `Answer: ${answer.toUpperCase()}`;
+                resultTimeEl.innerText = `Time: ${new Date(time).toLocaleString()}`;
+            } else {
+                resultAnswerEl.innerText = 'Answer: Not yet recorded';
+                resultTimeEl.innerText = 'Time: --';
+            }
+        }
+
+        function resetData() {
+            localStorage.removeItem('valentineAnswer');
+            localStorage.removeItem('valentineAnswerTimestamp');
+            updateResultsPanel();
+            resultsPanel.style.display = 'none'; // Hide panel after reset
+        }
+
+        // --- Keyboard Listener for 'r' key ---
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'r' || event.key === 'R') {
+                if (resultsPanel.style.display === 'block') {
+                    resultsPanel.style.display = 'none';
+                } else {
+                    updateResultsPanel();
+                    resultsPanel.style.display = 'block';
+                }
+            }
+        });
+
+        // --- Suspense Particles ---
+        function createParticles() {
+            const container = document.querySelector('.particle-container');
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.width = Math.random() * 5 + 3 + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                container.appendChild(particle);
+            }
+        }
+        createParticles();
+
+        // --- Game Logic ---
+        let courage = 0;
+        const maxCourage = 10;
+        let gameInterval;
+        const gameGhost = document.getElementById('game-ghost');
+        const gameScene = document.getElementById('game-scene');
+
+        function startGame() {
+            showScene('game-scene');
+            courage = 0;
+            updateCourageMeter();
+            startOrbSpawner();
+            
+            gameScene.addEventListener('mousemove', moveGhost);
+        }
+
+        function moveGhost(e) {
+            const rect = gameScene.getBoundingClientRect();
+            gameGhost.style.left = `${e.clientX - rect.left - 60}px`;
+            gameGhost.style.top = `${e.clientY - rect.top - 60}px`;
+        }
+
+        function startOrbSpawner() {
+            gameInterval = setInterval(() => {
+                if (courage < maxCourage) {
+                    spawnOrb();
+                } else {
+                    clearInterval(gameInterval);
+                    gameScene.removeEventListener('mousemove', moveGhost);
+                    setTimeout(() => showScene('question-scene'), 500);
+                }
+            }, 800);
+        }
+
+        function spawnOrb() {
+            const orb = document.createElement('div');
+            orb.className = 'vibe-orb';
+            orb.style.left = Math.random() * window.innerWidth + 'px';
+            orb.style.animationDuration = (3 + Math.random() * 2) + 's';
+            gameScene.appendChild(orb);
+
+            const checkCollision = setInterval(() => {
+                const orbRect = orb.getBoundingClientRect();
+                const ghostRect = gameGhost.getBoundingClientRect();
+
+                if (orbRect.left < ghostRect.right &&
+                    orbRect.right > ghostRect.left &&
+                    orbRect.top < ghostRect.bottom &&
+                    orbRect.bottom > ghostRect.top) {
+                    
+                    courage++;
+                    updateCourageMeter();
+                    
+                    orb.style.animation = 'pop 0.3s ease-out forwards';
+                    clearInterval(checkCollision);
+                    setTimeout(() => orb.remove(), 300);
+                }
+
+                if (orbRect.top < -100) {
+                    clearInterval(checkCollision);
+                    orb.remove();
+                }
+            }, 50);
+        }
+
+        function updateCourageMeter() {
+            const fillPercentage = (courage / maxCourage) * 100;
+            document.getElementById('courage-fill').style.width = fillPercentage + '%';
+        }
+
+        // --- Response Logic ---
+        let noClickCount = 0;
+        const noBtnTexts = ["Let me think...", "Are you sure?", "Pretty please?", "My ghost heart is breaking..."];
+        const yesBtn = document.getElementById('yes-btn');
+        const noBtn = document.getElementById('no-btn');
+
+        function updateButtonSizes() {
+            const scale = 1 + (noClickCount * 0.3);
+            yesBtn.style.fontSize = `${1.5 + (noClickCount * 0.4)}rem`;
+            yesBtn.style.padding = `${15 + (noClickCount * 5)}px ${40 + (noClickCount * 10)}px`;
+            
+            noBtn.style.fontSize = `${1.2 - (noClickCount * 0.2)}rem`;
+            noBtn.style.opacity = `${1 - (noClickCount * 0.2)}`;
+            
+            if (noClickCount < noBtnTexts.length) {
+                noBtn.innerText = noBtnTexts[noClickCount];
+            }
+        }
+
+        function startCelebration() {
+            const container = document.getElementById('floating-elements-container');
+            const emojis = ['❤️', '💕', '💖', '🎈', '🎉', '✨'];
+            
+            for (let i = 0; i < 25; i++) {
+                setTimeout(() => {
+                    const element = document.createElement('div');
+                    element.className = 'floating-element';
+                    element.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+                    element.style.left = Math.random() * 100 + '%';
+                    element.style.animationDuration = (3 + Math.random() * 3) + 's';
+                    element.style.fontSize = (1.5 + Math.random() * 1.5) + 'rem';
+                    container.appendChild(element);
+
+                    setTimeout(() => element.remove(), 6000);
+                }, i * 200);
+            }
+        }
+
+        function sayYes() {
+            // Store the answer
+            localStorage.setItem('valentineAnswer', 'yes');
+            localStorage.setItem('valentineAnswerTimestamp', new Date().toISOString());
+            
+            showScene('yes-scene');
+            startCelebration();
+            
+            const count = 200;
+            const defaults = { origin: { y: 0.7 } };
+
+            function fire(particleRatio, opts) {
+                confetti(Object.assign({}, defaults, opts, {
+                    particleCount: Math.floor(count * particleRatio),
+                }));
+            }
+
+            fire(0.25, { spread: 26, startVelocity: 55, origin: { x: 0.2 } });
+            fire(0.2, { spread: 60, origin: { x: 0.5 } });
+            fire(0.35, { spread: 100, decay: 0.91, origin: { x: 0.8 } });
+            fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, origin: { x: 0.5 } });
+            fire(0.1, { spread: 120, startVelocity: 45, origin: { y: 0.2 } });
+        }
+
+        function sayNo() {
+            // Store the answer
+            localStorage.setItem('valentineAnswer', 'no');
+            localStorage.setItem('valentineAnswerTimestamp', new Date().toISOString());
+
+            noClickCount++;
+            updateButtonSizes();
+            showScene('no-scene');
+        }
+
+        function reconsider() {
+            showScene('question-scene');
+        }
+
+        // --- Mouse Hover Heart Animation ---
+        const yesScene = document.getElementById('yes-scene');
+        let heartTrailActive = false;
+
+        function activateHeartTrail() {
+            if (heartTrailActive) return; // Prevent multiple listeners
+            heartTrailActive = true;
+            yesScene.addEventListener('mousemove', createHeart);
+        }
+
+        function deactivateHeartTrail() {
+            heartTrailActive = false;
+            yesScene.removeEventListener('mousemove', createHeart);
+        }
+
+        function createHeart(e) {
+            const heart = document.createElement('div');
+            heart.className = 'hover-heart';
+            heart.innerText = '❤️';
+            heart.style.left = `${e.clientX}px`;
+            heart.style.top = `${e.clientY}px`;
+            
+            yesScene.appendChild(heart);
+
+            // Remove the heart after the animation
+            setTimeout(() => {
+                heart.remove();
+            }, 1000);
+        }
+        
+        // Activate the heart trail when the yes scene is shown
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.target.id === 'yes-scene' && mutation.target.classList.contains('active')) {
+                    activateHeartTrail();
+                } else if (mutation.target.id === 'yes-scene' && !mutation.target.classList.contains('active')) {
+                    deactivateHeartTrail();
+                }
+            });
+        });
+
+        scenes.forEach(scene => observer.observe(scene, { attributes: true, attributeFilter: ['class'] }));
+
+    </script>
+</body>
+</html>
